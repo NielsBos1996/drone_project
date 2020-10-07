@@ -2,23 +2,36 @@ import matplotlib.pyplot as plt
 import numpy as np
 import subprocess
 import functools
+import tempfile
 import imageio
 import time
 import io
 import os
 
 
-def timer(func):
+def write_log(message: str):
+    assert isinstance(message, str)
+    tempdir = f'{tempfile.gettempdir()}\\drone_project'
+    if not os.path.isdir(f'{tempdir}'):
+        os.mkdir(f'{tempdir}')
+    with open(f'{tempdir}\\log.txt', 'a') as f:
+        f.write(f'[{time.time()}] ' + message + '\n')
+
+
+def execution_log(func):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
+        write_log(f'{func.__name__} called')
         st = time.time()
         result = func(*args, **kwargs)
-        print(f'Executing time: {time.time()-st:.4f} seconds')
+        write_log(f'{func.__name__} finished, execution time={time.time()-st} '
+                  f'seconds')
         return result
     return wrapper
 
 
-def test():
+@execution_log
+def make_plot():
     x = np.array([0.])
     y = np.array([0.])
     z = np.array([0.])
@@ -32,7 +45,7 @@ def test():
         fig.savefig(buf, format='png')
         images.append(buf)
         plt.close()
-    make_gif(images, name='test')
+    return images
 
 
 def scatter(x, y, z, c, xmin=None, xmax=None, ymin=None, ymax=None, zmin=None,
@@ -50,7 +63,7 @@ def scatter(x, y, z, c, xmin=None, xmax=None, ymin=None, ymax=None, zmin=None,
         ax.set_title(title)
     return fig
 
-
+@execution_log
 def make_gif(images: list, name: str, show=True):
     if not name.endswith('.gif'):
         name += '.gif'
@@ -63,7 +76,8 @@ def make_gif(images: list, name: str, show=True):
         subprocess.check_output([f'{os.getcwd()}\\{name}'], shell=True)
 
 
-test()
+img = make_plot()
+make_gif(img, name='test')
 
 
 
