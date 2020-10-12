@@ -1,5 +1,3 @@
-import numpy as np
-
 class Drone:
     def __init__(self, x, y, z, c):
         self.x = x
@@ -9,6 +7,12 @@ class Drone:
         self.phi = 0
         self.theta = 0
         self.color = ""
+        self.target_x = None
+        self.target_y = None
+        self.target_z = None
+        self.final_x =  None
+        self.final_y =  None
+        self.final_z =  None
 
     def update(self, x, y, z, v, phi, theta):
         self.x = x
@@ -18,13 +22,7 @@ class Drone:
         self.phi = phi
         self.theta = theta
 
-
-def path_finding(drones: list):
-    pass
-
-
-if __name__ == '__main__':
-    drones = [Drone(0,0,0), Drone(1, 0, 0)]
-
-    path_finding(drones)
-
+    def set_target(self, x, y, z):
+        self.target_x = x
+        self.target_y = y
+        self.target_Z = z
