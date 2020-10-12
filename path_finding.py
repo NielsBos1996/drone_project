@@ -2,6 +2,7 @@ import numpy as np
 
 
 def set_drone_target(drones, target):
+    # TODO: implement me
     pass
 
 
@@ -14,20 +15,11 @@ def path_finder(drones):
     2) repeat till done
 
     """
+    # TODO: implement me
     path = []
     pass
 
 
-def test():
-    target = {
-        "time": 1.234,
-        "locations": [
-            [1, 1, 1],
-            [1, 0, 1],
-            [0, 1, 1],
-            [0, 0, 1]
-        ]
-    }
-
-
-test()
+def is_done(drones: list) -> bool:
+    # TODO: implement me
+    pass

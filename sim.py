@@ -1,13 +1,16 @@
-import matplotlib.pyplot as plt
-import numpy as np
-import subprocess
 import functools
-import tempfile
-import imageio
-import drone
-import time
 import io
 import os
+import subprocess
+import tempfile
+import time
+
+import imageio
+import matplotlib.pyplot as plt
+import numpy as np
+
+from drone import Drone
+from path_finding import path_finder, set_drone_target, is_done
 
 def write_log(message: str):
     assert isinstance(message, str)
@@ -24,10 +27,13 @@ def execution_log(func):
         write_log(f'{func.__name__} called')
         st = time.time()
         result = func(*args, **kwargs)
-        write_log(f'{func.__name__} finished, execution time={time.time()-st} '
-                  f'seconds')
+        write_log(
+            f'{func.__name__} finished, execution time={time.time() - st} '
+            f'seconds')
         return result
+
     return wrapper
+
 
 class DroneSimulaterPlot:
     def __init__(self):
@@ -47,15 +53,17 @@ class DroneSimulaterPlot:
             c[idx] = drone.color
 
         buf = io.BytesIO()
-        fig = self.scatter(x, y, z, c,  xmin=0, xmax=10, ymin=0, ymax=10, zmin=0,
-            zmax=10, title=f'frame: {len(self.images)}')
+        fig = self.scatter(x, y, z, c, xmin=0, xmax=10, ymin=0, ymax=10,
+                           zmin=0,
+                           zmax=10, title=f'frame: {len(self.images)}')
         fig.savefig(buf, format='png')
         self.images.append(buf)
         plt.close()
 
     @staticmethod
-    def scatter(x, y, z, c, xmin=None, xmax=None, ymin=None, ymax=None, zmin=None,
-            zmax=None, title=""):
+    def scatter(x, y, z, c, xmin=None, xmax=None, ymin=None, ymax=None,
+                zmin=None,
+                zmax=None, title=""):
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
         ax.scatter(x, y, z, c)
@@ -81,13 +89,44 @@ class DroneSimulaterPlot:
             subprocess.check_output([f'{os.getcwd()}\\{name}'], shell=True)
 
 
-def simulation():
-    drones = [drone.Drone(1, 2, 3, "b")]
+def update_drones(drones, target_time):
+    # TODO
+    pass
+
+
+def simulation_single_drone_up():
+    drones = [Drone(1, 2, 3, "b")]
     simulator = DroneSimulaterPlot()
     for time in range(1, 100):
         drones[0].z += 0.1
         simulator.make_plot(drones)
     simulator.make_gif(name='test')
 
-simulation()
 
+def simulation_pathinding_algorithm():
+    drones = []
+    drones.append(Drone(4, 3, 0, 'red'))
+    drones.append(Drone(8, 3, 0, 'green'))
+    drones.append(Drone(4, -3, 0, 'blue'))
+    drones.append(Drone(8, -3, 0, 'orange'))
+
+    target = {
+        "time": 1.234,
+        "locations": [
+            [1, 1, 1],
+            [1, 0, 1],
+            [0, 1, 1],
+            [0, 0, 1]
+        ]
+    }
+
+    simulator = DroneSimulaterPlot()
+
+    set_drone_target(drones, target)
+
+    while not is_done(drones):
+        simulator.make_plot(drones)
+        path_finder(drones)
+        update_drones(drones, 1)
+    simulator.make_plot(drones)
+    simulator.make_gif("done_simulatie")
