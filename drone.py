@@ -5,19 +5,17 @@ class Drone:
         self.x = x
         self.y = y
         self.z = z
-        # velocity / acceleration?
-        # angle? (rx ry rz)
+        self.v = 0
+        self.phi = 0
+        self.theta = 0
 
-    def move(self, x, y, z):
-        self.x += x
-        self.y += y
-        self.z += z
-
-    def update(self, x, y, z):
+    def update(self, x, y, z, v, phi, theta):
         self.x = x
         self.y = y
         self.z = z
-
+        self.v = v
+        self.phi = phi
+        self.theta = theta
 
 def calc_coords(drones: list, information: list) -> np.ndarray:
     """

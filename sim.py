@@ -8,7 +8,6 @@ import time
 import io
 import os
 
-
 def write_log(message: str):
     assert isinstance(message, str)
     tempdir = f'{tempfile.gettempdir()}\\drone_project'
@@ -51,7 +50,7 @@ def make_plot():
 def scatter(x, y, z, c, xmin=None, xmax=None, ymin=None, ymax=None, zmin=None,
             zmax=None, title=""):
     fig = plt.figure()
-    ax = fig.add_subplot(1,1,1, projection='3d')
+    ax = fig.add_subplot(111, projection='3d')
     ax.scatter(x, y, z, c)
     if xmin is not None and xmax is not None:
         ax.set_xlim(xmin, xmax)
