@@ -1,10 +1,10 @@
 import matplotlib.pyplot as plt
-import drone
 import numpy as np
 import subprocess
 import functools
 import tempfile
 import imageio
+import drone
 import time
 import io
 import os
@@ -29,63 +29,70 @@ def execution_log(func):
         return result
     return wrapper
 
+class DroneSimulaterPlot:
+    def __init__(self):
+        self.images = []
 
-@execution_log
-def make_plot(drones):
-    drone_count = len(drones)
-    x = np.zeros((1, drone_count))
-    y = np.zeros((1, drone_count))
-    z = np.zeros((1, drone_count))
-    c = np.zeros((1, drone_count)).astype(str)
+    def make_plot(self, drones):
+        drone_count = len(drones)
+        x = np.zeros((1, drone_count))
+        y = np.zeros((1, drone_count))
+        z = np.zeros((1, drone_count))
+        c = np.zeros((1, drone_count)).astype(str)
 
-    for idx, drone in enumerate(drones):
-        x[idx] = drones[idx].x
-        y[idx] = drones[idx].y
-        z[idx] = drones[idx].z
-        c[idx] = drones[idx].color
+        for idx, drone in enumerate(drones):
+            x[idx] = drone.x
+            y[idx] = drone.y
+            z[idx] = drone.z
+            c[idx] = drone.color
 
-    images = []
-    for time in range(100):
         buf = io.BytesIO()
-        fig = scatter(x, y, z, c,  xmin=0, xmax=10, ymin=0, ymax=10, zmin=0,
-            zmax=10, title=f'time: {time}')
+        fig = self.scatter(x, y, z, c,  xmin=0, xmax=10, ymin=0, ymax=10, zmin=0,
+            zmax=10, title=f'frame: {len(self.images)}')
         fig.savefig(buf, format='png')
-        images.append(buf)
+        self.images.append(buf)
         plt.close()
-    return images
 
-
-def scatter(x, y, z, c, xmin=None, xmax=None, ymin=None, ymax=None, zmin=None,
+    @staticmethod
+    def scatter(x, y, z, c, xmin=None, xmax=None, ymin=None, ymax=None, zmin=None,
             zmax=None, title=""):
-    fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
-    ax.scatter(x, y, z, c)
-    if xmin is not None and xmax is not None:
-        ax.set_xlim(xmin, xmax)
-    if ymin is not None and ymax is not None:
-        ax.set_ylim(ymin, ymax)
-    if zmin is not None and zmax is not None:
-        ax.set_zlim(zmin, zmax)
-    if title:
-        ax.set_title(title)
-    return fig
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+        ax.scatter(x, y, z, c)
+        if xmin is not None and xmax is not None:
+            ax.set_xlim(xmin, xmax)
+        if ymin is not None and ymax is not None:
+            ax.set_ylim(ymin, ymax)
+        if zmin is not None and zmax is not None:
+            ax.set_zlim(zmin, zmax)
+        if title:
+            ax.set_title(title)
+        return fig
 
-@execution_log
-def make_gif(images: list, name: str, show=True):
-    if not name.endswith('.gif'):
-        name += '.gif'
-    with imageio.get_writer(name, mode='I') as writer:
-        for path_to_image in images:
-            path_to_image.seek(0)
-            img = imageio.imread(path_to_image)
-            writer.append_data(img)
-    if show:
-        subprocess.check_output([f'{os.getcwd()}\\{name}'], shell=True)
-
+    def make_gif(self, name: str, show=True):
+        if not name.endswith('.gif'):
+            name += '.gif'
+        with imageio.get_writer(name, mode='I') as writer:
+            for path_to_image in self.images:
+                path_to_image.seek(0)
+                img = imageio.imread(path_to_image)
+                writer.append_data(img)
+        if show:
+            subprocess.check_output([f'{os.getcwd()}\\{name}'], shell=True)
 
 
-img = make_plot([drone.Drone(1, 2, 3, "b")])
-make_gif(img, name='test')
+def simulation():
+    drones = [drone.Drone(1, 2, 3, "b")]
+    simulator = DroneSimulaterPlot()
+    for time in range(1, 100):
+        drones[0].z += 0.1
+        simulator.make_plot(drones)
+    simulator.make_gif(name='test')
+
+simulation()
+
+
+
 
 
 
