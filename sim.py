@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import drone
 import numpy as np
 import subprocess
 import functools
@@ -30,17 +31,24 @@ def execution_log(func):
 
 
 @execution_log
-def make_plot():
-    x = np.array([0.])
-    y = np.array([0.])
-    z = np.array([0.])
-    c = np.array(['blue'])
+def make_plot(drones):
+    drone_count = len(drones)
+    x = np.zeros((1, drone_count))
+    y = np.zeros((1, drone_count))
+    z = np.zeros((1, drone_count))
+    c = np.zeros((1, drone_count)).astype(str)
+
+    for idx, drone in enumerate(drones):
+        x[idx] = drones[idx].x
+        y[idx] = drones[idx].y
+        z[idx] = drones[idx].z
+        c[idx] = drones[idx].color
 
     images = []
-
     for time in range(100):
         buf = io.BytesIO()
-        fig = scatter(x, y, time/100, c, zmin=0, zmax=1, title=f'time: {time}')
+        fig = scatter(x, y, z, c,  xmin=0, xmax=10, ymin=0, ymax=10, zmin=0,
+            zmax=10, title=f'time: {time}')
         fig.savefig(buf, format='png')
         images.append(buf)
         plt.close()
@@ -75,7 +83,8 @@ def make_gif(images: list, name: str, show=True):
         subprocess.check_output([f'{os.getcwd()}\\{name}'], shell=True)
 
 
-img = make_plot()
+
+img = make_plot([drone.Drone(1, 2, 3, "b")])
 make_gif(img, name='test')
 
 

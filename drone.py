@@ -1,13 +1,14 @@
 import numpy as np
 
 class Drone:
-    def __init__(self, x, y, z):
+    def __init__(self, x, y, z, c):
         self.x = x
         self.y = y
         self.z = z
         self.v = 0
         self.phi = 0
         self.theta = 0
+        self.color = ""
 
     def update(self, x, y, z, v, phi, theta):
         self.x = x
@@ -16,12 +17,6 @@ class Drone:
         self.v = v
         self.phi = phi
         self.theta = theta
-
-def calc_coords(drones: list, information: list) -> np.ndarray:
-    """
-    pakt een list met alle drones als input en update de locatie van de drones
-    door middel van de update functie
-    """
 
 
 def path_finding(drones: list):
