@@ -91,8 +91,3 @@ def simulation():
 
 simulation()
 
-
-
-
-
-
