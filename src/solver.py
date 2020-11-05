@@ -20,12 +20,13 @@ class Solver:
 
     @execution_log
     def solve(self):
-        time = 0
+        start_time = 0
         for i in range(self.targets_count):
             self.assign_drone_to_target(i)
-            time = self.up_to_goal(time)
-            if time == self.max_time:
+            finish_time = self.move_drones_to_target(start_time)
+            if finish_time == self.max_time:
                 return
+            start_time = finish_time
             # TODO: drones must sleep like in target file
 
     def assign_drone_to_target(self, target_number):
@@ -48,7 +49,7 @@ class Solver:
             distance[:, target_idx] = np.inf
 
 
-    def up_to_goal(self, time) -> int:
+    def move_drones_to_target(self, time) -> int:
         """This function has a while loop which goes on in the time
         it starts by letting all the drones fly up, and when they reach
         their target height the drones will go in a straight way to their goal
