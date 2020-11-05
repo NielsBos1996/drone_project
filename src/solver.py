@@ -9,15 +9,16 @@ from src.helpers import *
 
 
 class Solver:
-    def __init__(self, target_file:str, drone_count:int,
-                 min_distance:float=1, max_time=70):
-        self.targets = self.read_target(target_file, drone_count)
+    def __init__(self, targets_location:str, drone_count:int,
+                 min_distance:float=1, max_time=250):
+        self.targets = self.read_target(targets_location, drone_count)
         self.drones = self.init_drones(drone_count, mock=True)
         self.space = Space(max_time, drone_count, min_distance)
         self.targets_count = len(self.targets['targets'])
         self.drone_count = drone_count
         self.max_time = max_time
 
+    @execution_log
     def solve(self):
         time = 0
         for i in range(self.targets_count):
@@ -59,9 +60,8 @@ class Solver:
                 all_drones_finished = False
 
                 td  = drone.target_diff()
-                dl = drone.location
                 mfs = drone.max_flight_speed
-                if abs(drone.z - drone.target_z) > .001:
+                if abs(td[2]) > .001:
                     # drone is not on the right height yet
                     if abs(td[2]) < mfs:
                         # drone is within one move from target height
@@ -76,7 +76,7 @@ class Solver:
                             move = [0, 0, mfs]
                 else:
                     # drone has reached target height
-                    if np.linalg.norm(dl[:2] - td[:2]) <= mfs:
+                    if np.linalg.norm(td[:2]) <= mfs:
                         # drone is within one move of the goal
                         move = [td[0], td[1], 0]
                     else:
@@ -94,10 +94,21 @@ class Solver:
         return time
 
     def move_drone(self, drone, drone_number, move, time) -> None:
-        # TODO: is a move is not allowed, then wait till the move is allowed
-        drone_loc = drone.update(move)
-        if not self.space.set_drone_loc(time, drone_number, drone_loc):
-            raise ValueError("move not allowed")
+        drone_new_loc = drone.pos_after_move(move)
+        conflicting_drone_idx = self.space.set_drone_loc(time, drone_number,
+                                                         drone_new_loc)
+        if not conflicting_drone_idx:
+            drone.update(move)
+        else:
+            if self.drones[conflicting_drone_idx].reached_goal():
+                self.flip_goals(drone_number, conflicting_drone_idx)
+
+    def flip_goals(self, drone1, drone2):
+        write_log(f"flipping goals drones {drone1} and {drone2}")
+        t1 = self.drones[drone1].get_target()
+        t2 = self.drones[drone2].get_target()
+        self.drones[drone1].set_target(t2)
+        self.drones[drone2].set_target(t1)
 
     @staticmethod
     def read_target(target_file, drone_count):

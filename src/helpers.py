@@ -28,7 +28,6 @@ def execution_log(func):
 def debug(func):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
-        write_log(f'{func.__name__} called')
         result = func(*args, **kwargs)
         args = ', '.join([str(elem) for elem in args])
         kwargs = ', '.join([f'{key}={value}' for key, value in kwargs.items()])

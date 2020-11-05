@@ -12,9 +12,10 @@ class DroneSimulaterPlot:
     def __init__(self):
         self.images = []
 
-    def make_plot(self, solver: Solver):
+    @execution_log
+    def make_plot(self, solver: Solver, save_as: str):
         for t in range(solver.max_time):
-            fig, ax = self.init_fig(-5, 5, -5, 5, 0, 10,
+            fig, ax = self.init_fig(-5, 5, -5, 10, 0, 10,
                                     f"time: {len(self.images)/10} seconds")
             for d in solver.space.drone_locs[t]:
                 ax.scatter(*d, c='blue')
@@ -22,7 +23,7 @@ class DroneSimulaterPlot:
             fig.savefig(buf, format='png')
             self.images.append(buf)
             plt.close()
-        self.make_gif("../data/images/temp")
+        self.make_gif(save_as)
 
     @staticmethod
     def scatter(x, y, z, c, xmin=None, xmax=None, ymin=None, ymax=None,
@@ -66,8 +67,8 @@ class DroneSimulaterPlot:
             subprocess.check_output([f'{os.getcwd()}\\{name}'], shell=True)
 
 if __name__ == "__main__":
-    s=Solver("../data/targets/two_drones.json", drone_count=2, min_distance=1)
+    s=Solver(targets_location="../data/targets/eight_drones.json", drone_count=8,
+             min_distance=1, max_time=150)
     s.solve()
-
     DSP = DroneSimulaterPlot()
-    DSP.make_plot(s)
+    DSP.make_plot(s, save_as="../data/images/eight_drones")

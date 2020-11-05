@@ -15,9 +15,11 @@ class Space:
         self.drone_locs = np.zeros((max_time * 10, drone_count, 3)).astype(
             'float32')
 
-    @debug
-    def set_drone_loc(self, time, drone_number, drone_loc) -> bool:
-        """loc must be a numpy array with 3 elements"""
+    def set_drone_loc(self, time, drone_number, drone_loc):
+        """loc must be a numpy array with 3 elements
+        if the drone cannot make a move, the number of the drone which
+        is in the way is returned. if it is possible to make the move,
+        None is returned"""
         for idx, other_drone_loc in enumerate(self.drone_locs[time, :, :]):
             if idx == drone_number:
                 continue
@@ -28,11 +30,10 @@ class Space:
             # check distance between drones
             distance = np.linalg.norm(drone_loc - other_drone_loc)
             if distance < self.min_distance:
-                write_log(f"Distance of drone {idx} is within"
-                          f" {self.min_distance}")
-                return False
+                write_log(f"Unable to move drone {drone_number}, drone {idx} is in the way")
+                return idx
         self.drone_locs[time:, drone_number, :] = drone_loc
-        return True
+        return None
 
     def reset(self, time):
         """Sets everything after time to zero"""
