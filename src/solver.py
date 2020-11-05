@@ -24,10 +24,11 @@ class Solver:
         for i in range(self.targets_count):
             self.assign_drone_to_target(i)
             finish_time = self.move_drones_to_target(start_time)
+            finish_time += self.targets['wait'][i] * 10
             if finish_time == self.max_time:
                 return
             start_time = finish_time
-            # TODO: drones must sleep like in target file
+        # TODO: move all drones to the ground
 
     def assign_drone_to_target(self, target_number):
         """this function assigns all the drones a target.
