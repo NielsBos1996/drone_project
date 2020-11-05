@@ -25,22 +25,6 @@ class DroneSimulaterPlot:
             plt.close()
         self.make_gif(save_as)
 
-    @staticmethod
-    def scatter(x, y, z, c, xmin=None, xmax=None, ymin=None, ymax=None,
-                zmin=None, zmax=None, title=""):
-        fig = plt.figure()
-        ax = fig.add_subplot(111, projection='3d')
-        ax.scatter(x, y, z, c)
-        if xmin is not None and xmax is not None:
-            ax.set_xlim(xmin, xmax)
-        if ymin is not None and ymax is not None:
-            ax.set_ylim(ymin, ymax)
-        if zmin is not None and zmax is not None:
-            ax.set_zlim(zmin, zmax)
-        if title:
-            ax.set_title(title)
-        return fig
-
     def init_fig(self, xmin=None, xmax=None, ymin=None, ymax=None,
                  zmin=None, zmax=None, title=""):
         fig = plt.figure()
