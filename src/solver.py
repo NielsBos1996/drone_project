@@ -51,6 +51,21 @@ class Solver:
 
 
     def move_drones_to_target(self, time) -> int:
+        """Checks if it is possible to move all the drones in a straight
+        line to their targets
+        Execute the movements if possible
+        If not possible, use the move_drones_up_straight algorithm"""
+        et = self.move_drones_straight(time)
+        if not et:
+            return self.move_drones_up_straight(time)
+        return et
+
+    def move_drones_straight(self, time) -> int:
+        """tries to move all the drones in a straight line to their targets.
+        returns 0 if this is not possible"""
+        return 0
+
+    def move_drones_up_straight(self, time) -> int:
         """This function has a while loop which goes on in the time
         it starts by letting all the drones fly up, and when they reach
         their target height the drones will go in a straight way to their goal
