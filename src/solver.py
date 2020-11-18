@@ -9,10 +9,11 @@ from src.helpers import *
 
 
 class Solver:
-    def __init__(self, targets_location:str, drone_count:int,
-                 min_distance:float=1, max_time=250):
-        self.targets = self.read_target(targets_location, drone_count)
+    def __init__(self, targets_location: str, drone_count: int,
+                 min_distance: float = 1, max_time=250):
         self.drones = self.init_drones(drone_count, mock=True)
+        self.targets = self.read_target(targets_location, drone_count)
+
         self.space = Space(max_time, drone_count, min_distance)
         self.targets_count = len(self.targets['targets'])
         self.drone_count = drone_count
@@ -49,7 +50,6 @@ class Solver:
             # set to inf because no other drone may take this target
             distance[:, target_idx] = np.inf
 
-
     def move_drones_to_target(self, time) -> int:
         """Checks if it is possible to move all the drones in a straight
         line to their targets
@@ -76,7 +76,7 @@ class Solver:
                 if drone.reached_goal(): continue
                 all_drones_finished = False
 
-                td  = drone.target_diff()
+                td = drone.target_diff()
                 mfs = drone.max_flight_speed
                 if abs(td[2]) > .001:
                     # drone is not on the right height yet
@@ -98,7 +98,7 @@ class Solver:
                         move = [td[0], td[1], 0]
                     else:
                         # drone is more than one move away from goal
-                        move = list(mfs*td[:2]/np.linalg.norm(td[:2]))
+                        move = list(mfs * td[:2] / np.linalg.norm(td[:2]))
                         move.append(0)
 
                 self.move_drone(drone, idx, move, time)
@@ -127,14 +127,19 @@ class Solver:
         self.drones[drone1].set_target(t2)
         self.drones[drone2].set_target(t1)
 
-    @staticmethod
-    def read_target(target_file, drone_count):
+    # @staticmethod
+    def read_target(self, target_file, drone_count):
         """targets should contain
         targets['targets'][target_count][drone_count]
-        targets['wait'][target_count'
+        targets['wait'][target_count']
         """
         with open(target_file, 'r') as file:
             targets = json.load(file)
+            end_pos = []
+            for idx, drone in enumerate(self.drones):
+                end_pos.append(drone.serialize())
+            targets["targets"].append(end_pos)
+            targets["wait"].append(1)
             pass
         if len(targets['targets']) != len(targets['wait']):
             raise ValueError("targets and wait length do not match")
@@ -145,11 +150,11 @@ class Solver:
         return targets
 
     @staticmethod
-    def init_drones(drone_count:int, mock:bool) -> List[Drone]:
+    def init_drones(drone_count: int, mock: bool) -> List[Drone]:
         drones = []
         if mock:
             # for now we lay the drones in a grid on the ground
-            x = int(np.ceil(drone_count**.5))
+            x = int(np.ceil(drone_count ** .5))
             drones_placed = 0
             for i in range(x):
                 for j in range(x):
@@ -162,5 +167,5 @@ class Solver:
 
 
 if __name__ == "__main__":
-    s=Solver("../data/targets/two_drones.json", drone_count=2, min_distance=1)
+    s = Solver("../data/targets/two_drones.json", drone_count=2, min_distance=1)
     s.solve()
