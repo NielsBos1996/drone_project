@@ -52,7 +52,7 @@ class DroneSimulaterPlot:
 
 if __name__ == "__main__":
     s=Solver(targets_location="../data/targets/eight_drones.json", drone_count=8,
-             min_distance=1, max_time=200)
+             min_distance=1, max_time=300)
     s.solve()
     DSP = DroneSimulaterPlot()
     DSP.make_plot(s, save_as="../data/images/eight_drones")

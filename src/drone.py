@@ -41,9 +41,7 @@ class Drone:
     def get_target(self):
         return [self.target_x, self.target_y, self.target_z, self.color]
 
-    @debug
     def reached_goal(self) -> bool:
-        write_log(str([f"{self.x:.2f} {self.y:.2f} {self.z:.2f}"]))
         if abs(self.x - self.target_x) > .001:
             return False
         if abs(self.y - self.target_y) > .001:
@@ -59,6 +57,10 @@ class Drone:
 
     def serialize(self):
         return [self.x, self.y, self.z, f"#{self.color}"]
+
+    def debug_info(self):
+        return f"pos: {self.x:.2f} {self.y:.2f} {self.z:.2f} target: " \
+               f"{self.target_x:.2f} {self.target_y:.2f} {self.target_z:.2f}"
 
     @property
     def location(self):
