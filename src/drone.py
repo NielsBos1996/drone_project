@@ -24,6 +24,12 @@ class Drone:
         self.y += xyz[1]
         self.z += xyz[2]
 
+    def set_pos(self, xyz) -> None:
+        assert len(xyz) == 3
+        self.x = xyz[0]
+        self.y = xyz[1]
+        self.z = xyz[2]
+
     def pos_after_move(self, xyz) -> np.ndarray:
         """Returns the position of a drone if after it made a given move,
         it doesnt make the move
