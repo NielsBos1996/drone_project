@@ -4,6 +4,9 @@ import tempfile
 import time
 import os
 
+class MoveNotPossibleException(Exception):
+    pass
+
 def write_log(message: str, folder_name="drone_project"):
     assert isinstance(message, str)
     tempdir = f'{tempfile.gettempdir()}\\{folder_name}'

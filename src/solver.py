@@ -1,3 +1,4 @@
+from numpy.linalg import norm
 import numpy as np
 import json
 
@@ -11,17 +12,18 @@ from src.helpers import *
 class Solver:
     def __init__(self, targets_location: str, drone_count: int,
                  min_distance: float = 1, max_time=250):
+        self.min_distance = min_distance
+        self.space = Space(max_time, drone_count, min_distance)
         self.drones = self.init_drones(drone_count, mock=True)
         self.targets = self.read_target(targets_location, drone_count)
 
-        self.space = Space(max_time, drone_count, min_distance)
         self.targets_count = len(self.targets['targets'])
         self.drone_count = drone_count
         self.max_time = max_time
 
     @execution_log
     def solve(self):
-        start_time = 0
+        start_time = 1
         for i in range(self.targets_count):
             is_last = i == self.targets_count - 1
             self.assign_drone_to_target(i)
@@ -67,7 +69,30 @@ class Solver:
     def move_drones_straight(self, time) -> int:
         """tries to move all the drones in a straight line to their targets.
         returns 0 if this is not possible"""
-        return 0
+        start_time = time
+        while True:
+            all_drones_finished = True
+            for idx, drone in enumerate(self.drones):
+                if drone.reached_goal(): continue
+                all_drones_finished = False
+                td = drone.target_diff()
+                mfs = drone.max_flight_speed
+                move = td / norm(td) * mfs
+                # check if move is possible
+                try:
+                    self.move_drone(drone, idx, move, time, flip_goals=False)
+                except MoveNotPossibleException:
+                    self.reset(start_time-1)
+                    return 0
+
+            time += 1
+            if time == self.max_time:
+                self.reset(start_time-1)
+                return 0
+            if all_drones_finished:
+                break
+
+        return time
 
     def move_drones_up_straight(self, time, is_last) -> int:
         """This function has a while loop which goes on in the time
@@ -93,19 +118,23 @@ class Solver:
                 return time
 
             if all_drones_finished:
-                break
-        return time
+                return time
 
     def calculate_move(self, drone, td, mfs, z_first: bool):
+        x_reached = abs(td[0]) < .001
+        y_reached = abs(td[1]) < .001
         z_reached = abs(td[2]) < .001
-        if z_reached or not z_first:
+        xy_reached = x_reached and y_reached
+        move = []
+
+        if z_reached or not z_first and not xy_reached:
             # move drone in xy plane
-            if np.linalg.norm(td[:2]) <= mfs:
+            if norm(td[:2]) <= mfs:
                 # drone is within one move of the goal
                 move = [td[0], td[1], 0]
             else:
                 # drone is more than one move away from goal
-                move = list(mfs * td[:2] / np.linalg.norm(td[:2]))
+                move = list(mfs * td[:2] / norm(td[:2]))
                 move.append(0)
         else:
             # drone is not on the right height yet
@@ -121,15 +150,17 @@ class Solver:
                     # drone is above target
                     move = [0, 0, -mfs]
 
-        return move
+        if move:
+            return move
+        return [0, 0, 0]
 
-    def move_drone(self, drone, drone_number, move, time) -> None:
+    def move_drone(self, drone, drone_number, move, time, flip_goals=True) -> None:
         drone_new_loc = drone.pos_after_move(move)
         conflicting_drone_idx = self.space.set_drone_loc(time, drone_number,
                                                          drone_new_loc)
-        if not conflicting_drone_idx:
+        if conflicting_drone_idx == None:
             drone.update(move)
-        else:
+        elif flip_goals:
             if self.drones[conflicting_drone_idx].reached_goal():
                 self.flip_goals(drone_number, conflicting_drone_idx)
             else:
@@ -137,6 +168,15 @@ class Solver:
                 write_log(f"drone {drone_number}: {drone.debug_info()}")
                 write_log(f"drone {conflicting_drone_idx}: "
                           f"{self.drones[conflicting_drone_idx].debug_info()}")
+        else:
+            raise MoveNotPossibleException()
+
+    def reset(self, time) -> None:
+        """sets the space and drone locations back to a given time. this is
+        usefull when exploring paths."""
+        self.space.reset(time)
+        for idx, drone in enumerate(self.drones):
+            drone.set_pos(self.space.drone_locs[time][idx])
 
     def flip_goals(self, drone1, drone2):
         write_log(f"flipping goals drones {drone1} and {drone2}")
@@ -166,16 +206,18 @@ class Solver:
             raise ValueError("drones count in target and available drones do not match")
         return targets
 
-    @staticmethod
-    def init_drones(drone_count: int, mock: bool) -> List[Drone]:
+    def init_drones(self, drone_count: int, mock: bool) -> List[Drone]:
         drones = []
         if mock:
             # for now we lay the drones in a grid on the ground
-            x = int(np.ceil(drone_count ** .5))
+            loop_range = int(np.ceil(drone_count ** .5))
             drones_placed = 0
-            for i in range(x):
-                for j in range(x):
-                    drones.append(Drone(i, j, 0))
+            for i in range(loop_range):
+                for j in range(loop_range):
+                    x = i * self.min_distance * 1.5
+                    y = j * self.min_distance * 1.5
+                    drones.append(Drone(x, y, 0))
+                    self.space.drone_locs[0][drones_placed] = np.array([x, y,0])
                     drones_placed += 1
                     if drones_placed == drone_count:
                         return drones

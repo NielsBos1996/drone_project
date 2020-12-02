@@ -37,7 +37,7 @@ class Space:
 
     def reset(self, time):
         """Sets everything after time to zero"""
-        self.drone_locs[time:] = 0
+        self.drone_locs[time+1:] = 0
 
     def __repr__(self):
         return f"Space object with drones={self.drone_count}&timespan={self.max_time}"
